@@ -1,0 +1,14 @@
+development:
+  dialect: mysql
+  datasource: root:password@tcp(127.0.0.1:3306)/emukone?parseTime=true
+  dir: migrations/mysql
+
+test:
+  dialect: mysql
+  datasource: root:password@tcp(127.0.0.1:3307)/emukone_test?parseTime=true
+  dir: migrations/mysql
+
+ci/test:
+  dialect: mysql
+  datasource: circleci:circleci@tcp(127.0.0.1:3306)/emukone_test?parseTime=true
+  dir: migrations/mysql

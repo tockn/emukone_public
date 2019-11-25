@@ -1,0 +1,42 @@
+version: 2
+jobs:
+  test:
+    docker:
+      - image: circleci/golang:1.11
+        environment:
+          GO111MODULE: "on"
+      - image: circleci/mysql:8.0-ram
+        environment:
+          - MYSQL_ROOT_PASSWORD=circleci
+          - MYSQL_DATABASE=emukone_test
+          - MYSQL_USER=circleci
+          - MYSQL_PASSWORD=circleci
+        ports:
+          - 3306:3306
+    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+    steps:
+      - checkout
+      - run:
+          name: make deps
+          command: |
+            make deps
+      - run:
+          name: install dockerize
+          command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+          environment:
+            DOCKERIZE_VERSION: v0.3.0
+      - run:
+          name: Wait for db
+          command: dockerize -wait tcp://localhost:3306 -timeout 1m
+      - run:
+          name: migrate test db
+          command: |
+            sql-migrate up -env=ci/test
+      - run:
+          name: go test
+          command: go test -v ./...
+workflows:
+  version: 2
+  test:
+    jobs:
+      - test
